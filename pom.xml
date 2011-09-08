@@ -142,15 +142,15 @@
     <module>examples/tests</module>
 
 
-    <module>contrib/cometd</module>
-    <module>contrib/jetty-ant</module>
-    <module>contrib/jetty-rewrite-handler</module>
-    <module>contrib/jetty-ldap-jaas</module>
-    <module>contrib/start-daemon</module>
+    <!-- <module>contrib/cometd</module> -->
+    <!-- <module>contrib/jetty-ant</module> -->
+    <!-- <module>contrib/jetty-rewrite-handler</module> -->
+    <!-- <module>contrib/jetty-ldap-jaas</module> -->
+    <!-- <module>contrib/start-daemon</module> -->
     <!--module>contrib/grizzly</module-->
     <!--module>contrib/wadi</module-->
-    <module>contrib/terracotta</module>
-    <module>contrib/sweeper</module>
+    <!-- <module>contrib/terracotta</module> -->
+    <!-- <module>contrib/sweeper</module> -->
     <module>extras/setuid</module>
   </modules>
   <dependencyManagement>
