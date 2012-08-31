@@ -92,7 +92,8 @@ public abstract class AbstractLifeCycle implements LifeCycle
 
     public boolean isRunning()
     {
-        return _state == STARTED || _state == STARTING;
+        int localState = _state;
+        return localState == STARTED || localState == STARTING;
     }
 
     public boolean isStarted()
