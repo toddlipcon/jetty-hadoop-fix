@@ -529,7 +529,7 @@ public abstract class SelectorManager extends AbstractLifeCycle
                         {
                             key=(SelectionKey)sweep.next();
 
-                            if (!key.isValid() && key.interestOps()==0)
+                            if (!key.isValid())
                             {
                                 try
                                 {
