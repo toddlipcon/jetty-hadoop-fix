@@ -15,10 +15,13 @@
 
 package org.mortbay.jetty;
 
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -28,10 +31,14 @@ import javax.servlet.http.HttpServletResponse;
 import junit.framework.TestCase;
 
 import org.mortbay.jetty.Request;
+import org.mortbay.jetty.MimeTypes;
 import org.mortbay.jetty.handler.AbstractHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.util.IO;
 import org.mortbay.util.StringUtil;
+import org.mortbay.log.Log;
+
+
 
 /**
  * @author gregw
@@ -482,7 +489,52 @@ public class RequestTest extends TestCase
         assertEquals("value7" ,cookie[7]);
     }
     
-    
+    public void testHashDOS() throws Exception
+    {
+        _server.setAttribute("org.eclipse.jetty.server.Request.maxFormContentSize", new Integer(-1));
+        _server.setAttribute("org.eclipse.jetty.server.Request.maxFormKeys", new Integer(1000));
+        
+        // This file is not distributed - as it is dangerous
+        File evil_keys = new File("/tmp/keys_mapping_to_zero_2m");
+        if (!evil_keys.exists())
+        {
+            Log.info("testHashDOS skipped");
+            return;
+        }
+        
+        BufferedReader in = new BufferedReader(new FileReader(evil_keys));
+        StringBuilder buf = new StringBuilder(4000000);
+        
+        String key=null;
+        buf.append("a=b");
+        while((key=in.readLine())!=null)
+        {
+            buf.append("&").append(key).append("=").append("x");
+        }
+        buf.append("&c=d");
+        
+        _handler._checker = new RequestTester()
+        {
+            public boolean check(HttpServletRequest request,HttpServletResponse response)
+            {
+                return "b".equals(request.getParameter("a")) && request.getParameter("c")==null;
+            }
+        };
+
+        String request="POST / HTTP/1.1\r\n"+
+        "Host: whatever\r\n"+
+        "Content-Type: "+MimeTypes.FORM_ENCODED+"\r\n"+
+        "Content-Length: "+buf.length()+"\r\n"+
+        "Connection: close\r\n"+
+        "\r\n"+
+        buf;
+        
+        long start=System.currentTimeMillis();
+        String response = _connector.getResponses(request);
+        assertTrue(response.contains("200 OK"));
+        long now=System.currentTimeMillis();
+        assertTrue((now-start)<5000);
+    }    
     
     
     interface RequestTester
@@ -498,8 +550,8 @@ public class RequestTest extends TestCase
         public void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException
         {
             ((Request)request).setHandled(true);
-            
-            if (request.getContentLength()>0)
+
+            if (request.getContentLength()>0 && !MimeTypes.FORM_ENCODED.equals(request.getContentType()))
                 _content=IO.toString(request.getInputStream());
             
             if (_checker!=null && _checker.check(request,response))
