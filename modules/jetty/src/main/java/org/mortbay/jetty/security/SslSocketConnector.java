@@ -503,7 +503,22 @@ public class SslSocketConnector extends SocketConnector
 
                 socket.setEnabledCipherSuites(enabledCipherSuites);
             }
-            
+
+            // Remove SSL protocols, since they are insecure.
+            // See POODLE: SSLv3 vulnerability (CVE-2014-3566).
+            // We provide a system property for backward compatibility in case some customer
+            // is running an ancient version of IE and relying on insecure SSL.
+            if (!Boolean.getBoolean("jetty.allow.insecure-ssl-protocols")) {
+                String[] allProtocols = socket.getEnabledProtocols();
+                List goodProtocols = new ArrayList();
+                for (int i = 0; i < allProtocols.length; i++) {
+                    String p = allProtocols[i];
+                    if (!p.contains("SSL")) {
+                        goodProtocols.add(p);
+                    }
+                }
+                socket.setEnabledProtocols((String[])goodProtocols.toArray(new String[0]));
+            }
         }
         catch (IOException e)
         {
