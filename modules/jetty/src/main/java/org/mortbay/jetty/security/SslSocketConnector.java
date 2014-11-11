@@ -513,7 +513,7 @@ public class SslSocketConnector extends SocketConnector
                 List goodProtocols = new ArrayList();
                 for (int i = 0; i < allProtocols.length; i++) {
                     String p = allProtocols[i];
-                    if (!p.contains("SSL")) {
+                    if (!p.contains("SSLv3")) {
                         goodProtocols.add(p);
                     }
                 }
